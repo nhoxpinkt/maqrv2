@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Studio — Tạo Mã QR Hiện Đại &amp; Thương Hiệu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0fdf4 100%);
+      min-height: 100vh;
+    }
+    .checker-bg {
+      background-color: #f1f5f9;
+      background-image:
+        linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch {
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20">
+          <i data-lucide="qr-code" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-lg">QR Studio</h1>
+          <p class="text-xs text-slate-500">Gắn link là ra mã QR — Đổi màu, khung hiện đại, gắn logo &amp; lồng ảnh</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnResetAll" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
+          <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+          <span class="hidden sm:inline">Đặt lại mặc định</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-8">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+
+      <!-- Left Column: Controls -->
+      <div class="space-y-5 lg:col-span-7">
+
+        <!-- Step 1: Content Input -->
+        <section class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">1</span>
+              <h2 class="text-sm font-bold text-slate-900 sm:text-base">Nhập nội dung tạo mã QR</h2>
+            </div>
+            <!-- Content Type Pills -->
+            <div class="flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1" id="contentTypeTabs">
+              <button type="button" data-type="url" class="content-tab rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition">Link URL</button>
+              <button type="button" data-type="wifi" class="content-tab rounded-lg px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:text-slate-900">WiFi</button>
+            </div>
+          </div>
+
+          <!-- URL Panel (Default) -->
+          <div id="panel-url" class="content-panel space-y-2">
+            <label for="inputUrl" class="block text-xs font-medium text-slate-600">Dán đường dẫn (website, Google Drive, Facebook, Zalo, form đăng ký...)</label>
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <i data-lucide="link" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+                <input id="inputUrl" type="url" value="https://gemini.google.com" placeholder="https://example.com" class="w-full rounded-xl border border-slate-300 bg-slate-50/50 py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10" />
+              </div>
+              <button id="btnPasteUrl" type="button" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200">
+                <i data-lucide="clipboard-paste" class="h-4 w-4"></i>
+                <span>Dán</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- WiFi Panel -->
+          <div id="panel-wifi" class="content-panel hidden grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label for="wifiSsid" class="mb-1 block text-xs font-medium text-slate-600">Tên mạng WiFi</label>
+              <input id="wifiSsid" type="text" placeholder="VD: Nha_Minh_5G" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label for="wifiPass" class="mb-1 block text-xs font-medium text-slate-600">Mật khẩu WiFi</label>
+              <input id="wifiPass" type="text" placeholder="Nhập mật khẩu" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label for="wifiAuth" class="mb-1 block text-xs font-medium text-slate-600">Bảo mật</label>
+              <select id="wifiAuth" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500">
+                <option value="WPA">WPA / WPA2 / WPA3</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">Không mật khẩu</option>
+              </select>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Step 2: Creative Mode & Appearance -->
+        <section class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">2</span>
+              <h2 class="text-sm font-bold text-slate-900 sm:text-base">Chế độ hiển thị &amp; Màu sắc</h2>
+            </div>
+          </div>
+
+          <!-- Mode Selector -->
+          <div class="mb-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2" id="renderModeGroup">
+            <button type="button" data-mode="standard" class="mode-btn flex items-center gap-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/70 p-3 text-left transition">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
+                <i data-lucide="layout-template" class="h-4 w-4"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-900">QR Chuẩn &amp; Khung</div>
+                <div class="text-[11px] text-slate-500">Sắc nét, chọn khung đẹp</div>
+              </div>
+            </button>
+            <button type="button" data-mode="photo" class="mode-btn flex items-center gap-2.5 rounded-xl border-2 border-slate-200 bg-white p-3 text-left transition hover:border-slate-300">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <i data-lucide="image" class="h-4 w-4"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-900">QR Lồng Ảnh (Art)</div>
+                <div class="text-[11px] text-slate-500">Mã QR hiện trên nền ảnh</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Colors & Gradient -->
+          <div class="space-y-4 border-t border-slate-100 pt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-slate-700">Bảng màu nhanh:</span>
+              <div class="flex flex-wrap items-center gap-2" id="colorSwatches">
+                <button type="button" data-fg="#0f172a" data-bg="#ffffff" data-grad="false" title="Đen cổ điển" class="h-7 w-7 rounded-full border-2 border-slate-300 bg-slate-900 transition hover:scale-110"></button>
+                <button type="button" data-fg="#2563eb" data-bg="#ffffff" data-grad="false" title="Xanh dương" class="h-7 w-7 rounded-full border-2 border-slate-200 bg-blue-600 transition hover:scale-110"></button>
+                <button type="button" data-fg="#7c3aed" data-bg="#ffffff" data-grad="true" data-fg2="#db2777" title="Tím hồng Gradient" class="h-7 w-7 rounded-full border-2 border-slate-200 bg-gradient-to-tr from-violet-600 to-pink-600 transition hover:scale-110"></button>
+                <button type="button" data-fg="#059669" data-bg="#ffffff" data-grad="true" data-fg2="#0284c7" title="Xanh ngọc Gradient" class="h-7 w-7 rounded-full border-2 border-slate-200 bg-gradient-to-tr from-emerald-600 to-sky-600 transition hover:scale-110"></button>
+                <button type="button" data-fg="#dc2626" data-bg="#ffffff" data-grad="false" title="Đỏ nổi bật" class="h-7 w-7 rounded-full border-2 border-slate-200 bg-red-600 transition hover:scale-110"></button>
+                <button type="button" data-fg="#f8fafc" data-bg="#0f172a" data-grad="false" title="Nền tối chữ sáng" class="h-7 w-7 rounded-full border-2 border-slate-400 bg-slate-800 ring-2 ring-inset ring-white transition hover:scale-110"></button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div class="rounded-xl border border-slate-200 p-2.5">
+                <label for="fgColor" class="mb-1.5 block text-[11px] font-medium text-slate-600">Màu mã QR</label>
+                <div class="flex items-center gap-2">
+                  <input id="fgColor" type="color" value="#0f172a" class="h-8 w-10 rounded" />
+                  <span id="fgColorLabel" class="text-xs font-mono text-slate-600">#0F172A</span>
+                </div>
+              </div>
+              <div class="rounded-xl border border-slate-200 p-2.5">
+                <label for="bgColor" class="mb-1.5 block text-[11px] font-medium text-slate-600">Màu nền</label>
+                <div class="flex items-center gap-2">
+                  <input id="bgColor" type="color" value="#ffffff" class="h-8 w-10 rounded" />
+                  <span id="bgColorLabel" class="text-xs font-mono text-slate-600">#FFFFFF</span>
+                </div>
+              </div>
+              <div class="rounded-xl border border-slate-200 p-2.5">
+                <label class="mb-1.5 flex items-center justify-between text-[11px] font-medium text-slate-600">
+                  <span>Gradient</span>
+                  <input id="useGradient" type="checkbox" class="h-3.5 w-3.5 rounded accent-indigo-600" />
+                </label>
+                <div class="flex items-center gap-2">
+                  <input id="fgColor2" type="color" value="#4f46e5" class="h-8 w-10 rounded disabled:opacity-40" disabled />
+                  <span id="fgColor2Label" class="text-xs font-mono text-slate-500">#4F46E5</span>
+                </div>
+              </div>
+              <div class="rounded-xl border border-slate-200 p-2.5">
+                <label for="dotStyle" class="mb-1.5 block text-[11px] font-medium text-slate-600">Kiểu hạt QR</label>
+                <select id="dotStyle" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 outline-none focus:border-indigo-500">
+                  <option value="rounded">Bo tròn hiện đại</option>
+                  <option value="square">Vuông cổ điển</option>
+                  <option value="dots">Chấm tròn (Dots)</option>
+                  <option value="diamond">Kim cương</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Eye Style & ECC -->
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label for="eyeStyle" class="mb-1 block text-xs font-medium text-slate-600">Kiểu 3 góc định vị (Mắt QR)</label>
+                <select id="eyeStyle" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none focus:border-indigo-500">
+                  <option value="rounded">Bo góc mềm mại</option>
+                  <option value="square">Vuông chuẩn</option>
+                  <option value="circle">Tròn hiện đại</option>
+                </select>
+              </div>
+              <div>
+                <label for="eccLevel" class="mb-1 block text-xs font-medium text-slate-600">Mức độ bảo vệ quét (ECC)</label>
+                <select id="eccLevel" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none focus:border-indigo-500">
+                  <option value="H" selected>Cao (H - 30%) — Khuyên dùng khi gắn Logo</option>
+                  <option value="Q">Khá cao (Q - 25%)</option>
+                  <option value="M">Trung bình (M - 15%)</option>
+                  <option value="L">Thấp (L - 7%) — Link rất dài</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Extra Controls for Photo Blend Mode -->
+          <div id="photoArtControls" class="mt-4 hidden space-y-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-900">Tùy chỉnh QR Lồng Ảnh (Halftone Art)</span>
+              <button id="btnClearArtPhoto" type="button" class="hidden text-xs font-semibold text-amber-700 hover:underline">Xóa ảnh</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-700">
+                <i data-lucide="upload" class="h-4 w-4"></i>
+                <span>Chọn ảnh nền (Chân dung, sản phẩm...)</span>
+                <input id="artPhotoInput" type="file" accept="image/*" class="hidden" />
+              </label>
+              <span id="artPhotoName" class="text-xs text-amber-800">Đang dùng ảnh mẫu Gradient Sunset</span>
+            </div>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] font-medium text-amber-900">
+                  <span>Độ rõ của ảnh nền</span>
+                  <span id="artOpacityVal">75%</span>
+                </div>
+                <input id="artOpacity" type="range" min="30" max="95" value="75" class="w-full accent-amber-600" />
+              </div>
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] font-medium text-amber-900">
+                  <span>Kích thước chấm QR (càng nhỏ càng rõ ảnh)</span>
+                  <span id="artDotScaleVal">38%</span>
+                </div>
+                <input id="artDotScale" type="range" min="28" max="60" value="38" class="w-full accent-amber-600" />
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Step 3: Modern Frames & Center Logo -->
+        <section class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm space-y-5">
+          <!-- Frames Section -->
+          <div id="frameSection">
+            <div class="mb-3 flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">3</span>
+              <h2 class="text-sm font-bold text-slate-900 sm:text-base">Khung hiện đại &amp; Gắn Logo thương hiệu</h2>
+            </div>
+
+            <div class="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-7" id="frameOptions">
+              <button type="button" data-frame="none" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-indigo-600 bg-indigo-50/70 p-2 text-center transition">
+                <div class="flex h-8 w-8 items-center justify-center rounded border border-dashed border-slate-400 text-[10px] font-bold text-slate-500">Không</div>
+                <span class="text-[11px] font-semibold text-slate-800">Tối giản</span>
+              </button>
+              <button type="button" data-frame="bottom-pill" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 flex-col items-center justify-between rounded border border-slate-300 p-0.5">
+                  <div class="h-4 w-4 bg-slate-700"></div>
+                  <div class="h-1.5 w-6 rounded-full bg-indigo-600"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Nhãn Pill</span>
+              </button>
+              <button type="button" data-frame="modern-card" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 flex-col items-center justify-end rounded bg-indigo-600 p-1">
+                  <div class="h-4 w-5 rounded-sm bg-white"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Thẻ Màu</span>
+              </button>
+              <button type="button" data-frame="top-badge" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 flex-col items-center justify-between rounded border border-slate-800 p-0.5">
+                  <div class="h-1.5 w-6 rounded-sm bg-slate-800"></div>
+                  <div class="h-4 w-4 bg-slate-700"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Nhãn Trên</span>
+              </button>
+              <button type="button" data-frame="gradient-glow" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-1">
+                  <div class="h-full w-full rounded-sm bg-white"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Gradient</span>
+              </button>
+              <button type="button" data-frame="dark-lux" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 flex-col items-center justify-center rounded bg-slate-900 p-1">
+                  <div class="h-4 w-4 rounded-sm bg-white"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Dark Lux</span>
+              </button>
+              <button type="button" data-frame="ticket" class="frame-btn flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 text-center transition hover:border-slate-300">
+                <div class="flex h-8 w-8 items-center justify-center rounded border-2 border-dashed border-indigo-500 p-1">
+                  <div class="h-4 w-4 bg-slate-700"></div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-700">Tem / Vé</span>
+              </button>
+            </div>
+
+            <div id="frameCustomRow" class="hidden grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label for="frameText" class="mb-1 block text-xs font-medium text-slate-600">Chữ trên khung (CTA)</label>
+                <input id="frameText" type="text" value="QUÉT MÃ NGAY" maxlength="28" placeholder="VD: QUÉT ĐỂ MỞ LINK" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label for="frameColor" class="mb-1 block text-xs font-medium text-slate-600">Màu nhấn của khung</label>
+                <div class="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-1.5">
+                  <input id="frameColor" type="color" value="#4f46e5" class="h-7 w-9 rounded" />
+                  <span id="frameColorLabel" class="text-xs font-mono text-slate-600">#4F46E5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center Logo Section -->
+          <div class="border-t border-slate-100 pt-4">
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">Gắn Ảnh / Logo thương hiệu vào giữa mã QR</span>
+              <button id="btnRemoveLogo" type="button" class="hidden text-xs font-semibold text-rose-600 hover:underline">Gỡ logo</button>
+            </div>
+
+            <!-- Transparent PNG Tip Banner -->
+            <div class="mb-3 flex items-start gap-2.5 rounded-xl border border-sky-200 bg-sky-50/80 px-3.5 py-2.5 text-xs text-sky-900">
+              <i data-lucide="sparkles" class="mt-0.5 h-4 w-4 shrink-0 text-sky-600"></i>
+              <p><strong>Mẹo làm đẹp:</strong> Bạn nên tải lên ảnh <strong>PNG đã xóa nền (nền trong suốt)</strong> để logo hòa quyện tự nhiên vào giữa mã QR mà không bị mảng vuông che khuất.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100">
+                <i data-lucide="image-plus" class="h-4 w-4"></i>
+                <span>Tải ảnh / Logo lên</span>
+                <input id="logoInput" type="file" accept="image/*" class="hidden" />
+              </label>
+
+              <!-- Quick Built-in Brand Icons -->
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-500">Hoặc chọn nhanh:</span>
+                <button type="button" data-preset-logo="star" class="preset-logo-btn flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-amber-500 hover:bg-slate-50" title="Ngôi sao">★</button>
+                <button type="button" data-preset-logo="heart" class="preset-logo-btn flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-rose-500 hover:bg-slate-50" title="Trái tim">♥</button>
+                <button type="button" data-preset-logo="bolt" class="preset-logo-btn flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-indigo-600 hover:bg-slate-50" title="Tia sét">⚡</button>
+                <button type="button" data-preset-logo="globe" class="preset-logo-btn flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-emerald-600 hover:bg-slate-50" title="Web">🌐</button>
+              </div>
+            </div>
+
+            <div id="logoOptionsRow" class="mt-3 hidden grid-cols-1 gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-3">
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] font-medium text-slate-600">
+                  <span>Kích thước logo</span>
+                  <span id="logoSizeVal">22%</span>
+                </div>
+                <input id="logoSize" type="range" min="14" max="28" value="22" class="w-full accent-indigo-600" />
+              </div>
+              <div>
+                <label for="logoShape" class="mb-1 block text-[11px] font-medium text-slate-600">Bo khung logo</label>
+                <select id="logoShape" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 outline-none">
+                  <option value="circle">Hình tròn</option>
+                  <option value="rounded">Bo góc</option>
+                  <option value="none">Giữ nguyên</option>
+                </select>
+              </div>
+              <div class="flex items-center">
+                <label class="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700">
+                  <input id="logoBgPad" type="checkbox" checked class="h-4 w-4 rounded accent-indigo-600" />
+                  <span>Đệm nền trắng giúp dễ quét</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column: Live Preview & Download -->
+      <div class="lg:sticky lg:top-20 lg:col-span-5">
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-md">
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">Xem trước mã QR</h2>
+            <span id="scanStatusBadge" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              Sẵn sàng quét
+            </span>
+          </div>
+
+          <!-- Preview Stage -->
+          <div class="checker-bg relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 p-4">
+            <canvas id="qrCanvas" class="max-h-[360px] max-w-full rounded-lg shadow-sm"></canvas>
+          </div>
+
+          <!-- Contrast Warning -->
+          <div id="contrastWarning" class="mt-3 hidden items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <i data-lucide="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0 text-amber-600"></i>
+            <span>Độ tương phản giữa màu mã QR và màu nền hơi thấp. Hãy chọn màu mã đậm hơn nền để camera điện thoại dễ nhận diện.</span>
+          </div>
+
+          <!-- Download Actions -->
+          <div class="mt-4 space-y-2.5">
+            <button id="btnDownloadPng" type="button" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-indigo-500/25 transition hover:brightness-105 active:scale-[0.99]">
+              <i data-lucide="download" class="h-4 w-4"></i>
+              <span>Tải ảnh PNG (Chất lượng cao)</span>
+            </button>
+            <div class="grid grid-cols-2 gap-2.5">
+              <button id="btnDownloadSvg" type="button" class="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
+                <i data-lucide="file-code-2" class="h-4 w-4 text-indigo-600"></i>
+                <span>Tải Vector SVG</span>
+              </button>
+              <button id="btnCopyPng" type="button" class="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
+                <i data-lucide="copy" class="h-4 w-4 text-indigo-600"></i>
+                <span>Sao chép ảnh</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <p class="mt-3 text-center text-[11px] text-slate-400">
+            Mẹo: Luôn thử quét nhanh bằng camera điện thoại trước khi đem đi in ấn hàng loạt.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="pointer-events-none fixed bottom-5 right-5 z-50 translate-y-4 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-200"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+// Pure JS QR Code Generator (ISO/IEC 18004, Byte Mode UTF-8, Versions 1..15, ECC L/M/Q/H)
+function createPureQR(text, eccLevel) {
+  const ECC_MAP = { L: 1, M: 0, Q: 3, H: 2 };
+  const ecl = ECC_MAP[eccLevel] !== undefined ? ECC_MAP[eccLevel] : 2;
+  const bytes = Array.from(new TextEncoder().encode(text));
+
+  // RS Block table for Versions 1..15: [totalCodewords, ecPerBlock, [numBlocksG1, dataPerG1, numBlocksG2, dataPerG2]]
+  // Indexed by [version][eccIndex] where eccIndex: 0=L, 1=M, 2=Q, 3=H
+  const ECC_IDX = { L: 0, M: 1, Q: 2, H: 3 }[eccLevel] ?? 3;
+  const RS_TABLE = [
+    null,
+    // V1
+    [[19,7,1,19,0,0],[16,10,1,16,0,0],[13,13,1,13,0,0],[9,17,1,9,0,0]],
+    // V2
+    [[34,10,1,34,0,0],[28,16,1,28,0,0],[22,22,1,22,0,0],[16,28,1,16,0,0]],
+    // V3
+    [[55,15,1,55,0,0],[44,26,1,44,0,0],[34,18,2,17,0,0],[26,22,2,13,0,0]],
+    // V4
+    [[80,20,1,80,0,0],[64,18,2,32,0,0],[48,26,2,24,0,0],[36,16,4,9,0,0]],
+    // V5
+    [[108,26,1,108,0,0],[86,24,2,43,0,0],[62,18,2,15,2,16],[46,22,2,11,2,12]],
+    // V6
+    [[136,18,2,68,0,0],[108,16,4,27,0,0],[76,24,4,19,0,0],[60,28,4,15,0,0]],
+    // V7
+    [[156,20,2,78,0,0],[124,18,4,31,0,0],[88,18,2,14,4,15],[66,26,4,13,1,14]],
+    // V8
+    [[194,24,2,97,0,0],[154,22,2,38,2,39],[110,22,4,18,2,19],[86,26,4,14,2,15]],
+    // V9
+    [[232,30,2,116,0,0],[182,22,3,36,2,37],[132,20,4,16,4,17],[100,24,4,12,4,13]],
+    // V10
+    [[274,18,2,68,2,69],[216,26,4,43,1,44],[154,24,6,19,2,20],[122,28,6,15,2,16]],
+    // V11
+    [[324,20,4,81,0,0],[254,30,1,50,4,51],[180,28,4,22,4,23],[140,24,3,12,8,13]],
+    // V12
+    [[370,24,2,92,2,93],[290,22,6,36,2,37],[206,26,4,20,6,21],[158,28,7,14,4,15]],
+    // V13
+    [[428,26,4,107,0,0],[334,22,8,37,1,38],[244,24,8,20,4,21],[180,22,12,11,4,12]],
+    // V14
+    [[461,30,3,115,1,116],[365,24,4,40,5,41],[261,20,11,16,5,17],[197,24,11,12,5,13]],
+    // V15
+    [[523,22,5,87,1,88],[415,24,5,41,5,42],[295,30,5,24,7,25],[223,24,11,12,7,13]]
+  ];
+
+  // Choose smallest version 1..15 that fits
+  let version = 1;
+  for (; version <= 15; version++) {
+    const cap = RS_TABLE[version][ECC_IDX][0];
+    const ccBits = version <= 9 ? 8 : 16;
+    const neededBits = 4 + ccBits + bytes.length * 8;
+    if (Math.ceil(neededBits / 8) <= cap) break;
+  }
+  if (version > 15) throw new Error('Data too long for QR V15');
+
+  const spec = RS_TABLE[version][ECC_IDX];
+  const dataCap = spec[0];
+  const ecPerBlock = spec[1];
+
+  // Build bit stream (Byte mode = 0100)
+  const bits = [];
+  function pushBits(val, len) {
+    for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1);
+  }
+  pushBits(0b0100, 4);
+  pushBits(bytes.length, version <= 9 ? 8 : 16);
+  for (const b of bytes) pushBits(b, 8);
+  const maxBits = dataCap * 8;
+  for (let i = 0; i < 4 && bits.length < maxBits; i++) bits.push(0);
+  while (bits.length % 8 !== 0) bits.push(0);
+  const padBytes = [0xec, 0x11];
+  let pi = 0;
+  while (bits.length < maxBits) {
+    pushBits(padBytes[pi % 2], 8);
+    pi++;
+  }
+
+  const dataBytes = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let v = 0;
+    for (let j = 0; j < 8; j++) v = (v << 1) | bits[i + j];
+    dataBytes.push(v);
+  }
+
+  // GF(256) arithmetic for Reed-Solomon
+  const GF_EXP = new Uint8Array(512);
+  const GF_LOG = new Uint8Array(256);
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    GF_EXP[i] = x;
+    GF_LOG[x] = i;
+    x <<= 1;
+    if (x & 0x100) x ^= 0x11d;
+  }
+  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+  function gfMul(a, b) {
+    return (a === 0 || b === 0) ? 0 : GF_EXP[GF_LOG[a] + GF_LOG[b]];
+  }
+  function rsGeneratorPoly(deg) {
+    let poly = [1];
+    for (let i = 0; i < deg; i++) {
+      const next = new Array(poly.length + 1).fill(0);
+      const factor = GF_EXP[i];
+      for (let j = 0; j < poly.length; j++) {
+        next[j] ^= poly[j];
+        next[j + 1] ^= gfMul(poly[j], factor);
+      }
+      poly = next;
+    }
+    return poly;
+  }
+  function rsRemainder(data, ecLen) {
+    const gen = rsGeneratorPoly(ecLen);
+    const res = data.concat(new Array(ecLen).fill(0));
+    for (let i = 0; i < data.length; i++) {
+      const coef = res[i];
+      if (coef !== 0) {
+        for (let j = 0; j < gen.length; j++) {
+          res[i + j] ^= gfMul(gen[j], coef);
+        }
+      }
+    }
+    return res.slice(data.length);
+  }
+
+  // Split into blocks & interleave
+  const blocks = [];
+  let offset = 0;
+  for (let g = 0; g < 2; g++) {
+    const nb = spec[2 + g * 2];
+    const dl = spec[3 + g * 2];
+    for (let b = 0; b < nb; b++) {
+      const d = dataBytes.slice(offset, offset + dl);
+      offset += dl;
+      blocks.push({ d, ec: rsRemainder(d, ecPerBlock) });
+    }
+  }
+  const finalBytes = [];
+  const maxD = Math.max(...blocks.map(b => b.d.length));
+  for (let i = 0; i < maxD; i++) {
+    for (const b of blocks) if (i < b.d.length) finalBytes.push(b.d[i]);
+  }
+  for (let i = 0; i < ecPerBlock; i++) {
+    for (const b of blocks) finalBytes.push(b.ec[i]);
+  }
+
+  // Matrix setup
+  const size = version * 4 + 17;
+  const modules = Array.from({ length: size }, () => new Array(size).fill(null));
+  const isFunc = Array.from({ length: size }, () => new Array(size).fill(false));
+
+  function setMod(r, c, val, func = true) {
+    if (r >= 0 && r < size && c >= 0 && c < size) {
+      modules[r][c] = val;
+      if (func) isFunc[r][c] = true;
+    }
+  }
+
+  function drawFinder(r0, c0) {
+    for (let dr = -1; dr <= 7; dr++) {
+      for (let dc = -1; dc <= 7; dc++) {
+        const r = r0 + dr, c = c0 + dc;
+        if (r < 0 || r >= size || c < 0 || c >= size) continue;
+        const inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+        const inBorder = dr === 0 || dr === 6 || dc === 0 || dc === 6;
+        const inCenter = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+        setMod(r, c, inOuter && (inBorder || inCenter), true);
+      }
+    }
+  }
+  drawFinder(0, 0);
+  drawFinder(0, size - 7);
+  drawFinder(size - 7, 0);
+
+  // Alignment patterns
+  const ALIGN_POS = [
+    [], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34],
+    [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50],
+    [6, 30, 54], [6, 32, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48, 70]
+  ];
+  const apos = ALIGN_POS[version];
+  for (const ar of apos) {
+    for (const ac of apos) {
+      if ((ar <= 8 && ac <= 8) || (ar <= 8 && ac >= size - 8) || (ar >= size - 8 && ac <= 8)) continue;
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const isDark = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
+          setMod(ar + dr, ac + dc, isDark, true);
+        }
+      }
+    }
+  }
+
+  // Timing patterns
+  for (let i = 8; i < size - 8; i++) {
+    if (!isFunc[6][i]) setMod(6, i, i % 2 === 0, true);
+    if (!isFunc[i][6]) setMod(i, 6, i % 2 === 0, true);
+  }
+  // Dark module
+  setMod(size - 8, 8, true, true);
+
+  // Reserve format info areas
+  for (let i = 0; i < 9; i++) {
+    if (!isFunc[8][i]) setMod(8, i, false, true);
+    if (!isFunc[i][8]) setMod(i, 8, false, true);
+  }
+  for (let i = 0; i < 8; i++) {
+    if (!isFunc[8][size - 1 - i]) setMod(8, size - 1 - i, false, true);
+    if (!isFunc[size - 1 - i][8]) setMod(size - 1 - i, 8, false, true);
+  }
+
+  // Version info for V >= 7
+  if (version >= 7) {
+    let rem = version;
+    for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1f25);
+    const vbits = (version << 12) | rem;
+    for (let i = 0; i < 18; i++) {
+      const bit = ((vbits >>> i) & 1) === 1;
+      const a = size - 11 + (i % 3);
+      const b = Math.floor(i / 3);
+      setMod(a, b, bit, true);
+      setMod(b, a, bit, true);
+    }
+  }
+
+  // Place data bits in zig-zag
+  const allBits = [];
+  for (const b of finalBytes) {
+    for (let i = 7; i >= 0; i--) allBits.push(((b >>> i) & 1) === 1);
+  }
+  let bitIdx = 0;
+  let upward = true;
+  for (let right = size - 1; right >= 1; right -= 2) {
+    if (right === 6) right = 5;
+    for (let vert = 0; vert < size; vert++) {
+      const r = upward ? size - 1 - vert : vert;
+      for (let lr = 0; lr < 2; lr++) {
+        const c = right - lr;
+        if (!isFunc[r][c]) {
+          modules[r][c] = bitIdx < allBits.length ? allBits[bitIdx++] : false;
+        }
+      }
+    }
+    upward = !upward;
+  }
+
+  // Apply best mask (0..7)
+  function maskFn(m, r, c) {
+    switch (m) {
+      case 0: return (r + c) % 2 === 0;
+      case 1: return r % 2 === 0;
+      case 2: return c % 3 === 0;
+      case 3: return (r + c) % 3 === 0;
+      case 4: return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0;
+      case 5: return ((r * c) % 2) + ((r * c) % 3) === 0;
+      case 6: return (((r * c) % 2) + ((r * c) % 3)) % 2 === 0;
+      case 7: return (((r + c) % 2) + ((r * c) % 3)) % 2 === 0;
+    }
+  }
+
+  function applyFormat(grid, mask) {
+    const data = (ecl << 3) | mask;
+    let rem = data;
+    for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    const fbits = ((data << 10) | rem) ^ 0x5412;
+    for (let i = 0; i <= 5; i++) grid[8][i] = ((fbits >>> (14 - i)) & 1) === 1;
+    grid[8][7] = ((fbits >>> 8) & 1) === 1;
+    grid[8][8] = ((fbits >>> 7) & 1) === 1;
+    grid[7][8] = ((fbits >>> 6) & 1) === 1;
+    for (let i = 9; i < 15; i++) grid[14 - i][8] = ((fbits >>> (14 - i)) & 1) === 1;
+    for (let i = 0; i < 8; i++) grid[8][size - 1 - i] = ((fbits >>> i) & 1) === 1;
+    for (let i = 8; i < 15; i++) grid[size - 15 + i][8] = ((fbits >>> i) & 1) === 1;
+  }
+
+  function penaltyScore(grid) {
+    let score = 0;
+    for (let r = 0; r < size; r++) {
+      let run = 1;
+      for (let c = 1; c < size; c++) {
+        if (grid[r][c] === grid[r][c - 1]) {
+          run++;
+          if (run === 5) score += 3;
+          else if (run > 5) score += 1;
+        } else run = 1;
+      }
+    }
+    for (let c = 0; c < size; c++) {
+      let run = 1;
+      for (let r = 1; r < size; r++) {
+        if (grid[r][c] === grid[r - 1][c]) {
+          run++;
+          if (run === 5) score += 3;
+          else if (run > 5) score += 1;
+        } else run = 1;
+      }
+    }
+    for (let r = 0; r < size - 1; r++) {
+      for (let c = 0; c < size - 1; c++) {
+        const v = grid[r][c];
+        if (v === grid[r][c + 1] && v === grid[r + 1][c] && v === grid[r + 1][c + 1]) score += 3;
+      }
+    }
+    return score;
+  }
+
+  let bestGrid = null;
+  let bestScore = Infinity;
+  for (let m = 0; m < 8; m++) {
+    const g = modules.map((row, r) => row.map((v, c) => (isFunc[r][c] ? v : (maskFn(m, r, c) ? !v : v))));
+    applyFormat(g, m);
+    const sc = penaltyScore(g);
+    if (sc < bestScore) {
+      bestScore = sc;
+      bestGrid = g;
+    }
+  }
+
+  return {
+    getModuleCount: () => size,
+    isDark: (r, c) => Boolean(bestGrid[r][c])
+  };
+}
+
+
+      // App State
+      const state = {
+        contentType: 'url',
+        renderMode: 'standard', // 'standard' | 'photo'
+        fgColor: '#0f172a',
+        fgColor2: '#4f46e5',
+        bgColor: '#ffffff',
+        useGradient: false,
+        dotStyle: 'rounded',
+        eyeStyle: 'rounded',
+        eccLevel: 'H',
+        frame: 'none',
+        frameText: 'QUÉT MÃ NGAY',
+        frameColor: '#4f46e5',
+        logoImg: null,
+        logoSize: 22,
+        logoShape: 'circle',
+        logoBgPad: true,
+        artPhotoImg: null,
+        artOpacity: 75,
+        artDotScale: 38
+      };
+
+      // DOM Elements
+      const qrCanvas = document.getElementById('qrCanvas');
+      const ctx = qrCanvas.getContext('2d');
+
+      // Toast helper
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.remove('opacity-0', 'translate-y-4');
+        el.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.classList.add('opacity-0', 'translate-y-4');
+          el.classList.remove('opacity-100', 'translate-y-0');
+        }, 2600);
+      }
+
+      // Compute current QR payload string
+      function getPayload() {
+        switch (state.contentType) {
+          case 'url': {
+            const v = document.getElementById('inputUrl').value.trim();
+            return v || 'https://gemini.google.com';
+          }
+          case 'wifi': {
+            const ssid = document.getElementById('wifiSsid').value.trim() || 'MyWiFi';
+            const pass = document.getElementById('wifiPass').value;
+            const auth = document.getElementById('wifiAuth').value;
+            return `WIFI:T:${auth};S:${ssid};P:${pass};;`;
+          }
+          default:
+            return 'https://gemini.google.com';
+        }
+      }
+
+      // Build QR Matrix
+      function createQrMatrix() {
+        const text = getPayload();
+        let ecc = state.eccLevel;
+        try {
+          return createPureQR(text, ecc);
+        } catch (e) {
+          return createPureQR(text, 'L');
+        }
+      }
+
+      // Luminance helper for contrast warning
+      function hexToRgb(hex) {
+        const clean = hex.replace('#', '');
+        const num = parseInt(clean, 16);
+        return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+      }
+      function luminance(hex) {
+        const { r, g, b } = hexToRgb(hex);
+        const a = [r, g, b].map(v => {
+          v /= 255;
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+      }
+      function checkContrast() {
+        const l1 = luminance(state.fgColor);
+        const l2 = luminance(state.bgColor);
+        const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+        const warn = document.getElementById('contrastWarning');
+        const badge = document.getElementById('scanStatusBadge');
+        if (ratio < 2.6 && state.renderMode !== 'photo') {
+          warn.classList.remove('hidden');
+          warn.classList.add('flex');
+          badge.className = 'inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700';
+          badge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Tương phản thấp';
+        } else {
+          warn.classList.add('hidden');
+          warn.classList.remove('flex');
+          badge.className = 'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700';
+          badge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Sẵn sàng quét';
+        }
+      }
+
+      // Helper: Is module inside one of the 3 finder patterns (7x7 corners)
+      function isFinderModule(r, c, count) {
+        if (r < 7 && c < 7) return true;
+        if (r < 7 && c >= count - 7) return true;
+        if (r >= count - 7 && c < 7) return true;
+        return false;
+      }
+
+      // Helper: Rounded rectangle path
+      function roundRectPath(c2d, x, y, w, h, r) {
+        const radius = Math.min(r, w / 2, h / 2);
+        c2d.beginPath();
+        c2d.moveTo(x + radius, y);
+        c2d.arcTo(x + w, y, x + w, y + h, radius);
+        c2d.arcTo(x + w, y + h, x, y + h, radius);
+        c2d.arcTo(x, y + h, x, y, radius);
+        c2d.arcTo(x, y, x + w, y, radius);
+        c2d.closePath();
+      }
+
+      // Draw a single finder eye (7x7)
+      function drawFinderEye(c2d, x, y, cellSize, fgFill, bgFill, style) {
+        const outerSize = cellSize * 7;
+        const midSize = cellSize * 5;
+        const innerSize = cellSize * 3;
+
+        c2d.fillStyle = fgFill;
+        if (style === 'circle') {
+          c2d.beginPath();
+          c2d.arc(x + outerSize / 2, y + outerSize / 2, outerSize / 2, 0, Math.PI * 2);
+          c2d.fill();
+
+          c2d.fillStyle = bgFill;
+          c2d.beginPath();
+          c2d.arc(x + outerSize / 2, y + outerSize / 2, midSize / 2, 0, Math.PI * 2);
+          c2d.fill();
+
+          c2d.fillStyle = fgFill;
+          c2d.beginPath();
+          c2d.arc(x + outerSize / 2, y + outerSize / 2, innerSize / 2, 0, Math.PI * 2);
+          c2d.fill();
+        } else if (style === 'rounded') {
+          roundRectPath(c2d, x, y, outerSize, outerSize, cellSize * 1.8);
+          c2d.fill();
+
+          c2d.fillStyle = bgFill;
+          roundRectPath(c2d, x + cellSize, y + cellSize, midSize, midSize, cellSize * 1.1);
+          c2d.fill();
+
+          c2d.fillStyle = fgFill;
+          roundRectPath(c2d, x + cellSize * 2, y + cellSize * 2, innerSize, innerSize, cellSize * 0.8);
+          c2d.fill();
+        } else {
+          c2d.fillRect(x, y, outerSize, outerSize);
+          c2d.fillStyle = bgFill;
+          c2d.fillRect(x + cellSize, y + cellSize, midSize, midSize);
+          c2d.fillStyle = fgFill;
+          c2d.fillRect(x + cellSize * 2, y + cellSize * 2, innerSize, innerSize);
+        }
+      }
+
+      // Draw default sample art photo (gradient sunset) on offscreen canvas if user hasn't uploaded one
+      function drawDefaultArtBg(c2d, x, y, size) {
+        const g = c2d.createLinearGradient(x, y, x + size, y + size);
+        g.addColorStop(0, '#f59e0b');
+        g.addColorStop(0.5, '#ec4899');
+        g.addColorStop(1, '#6366f1');
+        c2d.fillStyle = g;
+        c2d.fillRect(x, y, size, size);
+
+        // Decorative sun/mountain vector art
+        c2d.fillStyle = 'rgba(255,255,255,0.28)';
+        c2d.beginPath();
+        c2d.arc(x + size * 0.5, y + size * 0.38, size * 0.22, 0, Math.PI * 2);
+        c2d.fill();
+
+        c2d.fillStyle = 'rgba(15,23,42,0.25)';
+        c2d.beginPath();
+        c2d.moveTo(x, y + size);
+        c2d.lineTo(x + size * 0.35, y + size * 0.58);
+        c2d.lineTo(x + size * 0.65, y + size * 0.82);
+        c2d.lineTo(x + size * 0.85, y + size * 0.62);
+        c2d.lineTo(x + size, y + size);
+        c2d.closePath();
+        c2d.fill();
+      }
+
+      // Main 2D Render Function (Standard + Frame + Photo Art)
+      function render2D(exportSize = 900) {
+        const qr = createQrMatrix();
+        const count = qr.getModuleCount();
+
+        // Determine frame layout dimensions
+        const frame = state.renderMode === 'photo' ? 'none' : state.frame;
+        let qrBoxSize = exportSize;
+        let canvasW = exportSize;
+        let canvasH = exportSize;
+        let qrOffsetX = 0;
+        let qrOffsetY = 0;
+
+        if (frame !== 'none') {
+          const pad = Math.round(exportSize * 0.08);
+          const bannerH = Math.round(exportSize * 0.16);
+          qrBoxSize = exportSize - pad * 2;
+          canvasW = exportSize;
+          canvasH = exportSize + bannerH;
+          qrOffsetX = pad;
+          qrOffsetY = frame === 'top-badge' ? pad + bannerH : pad;
+        }
+
+        qrCanvas.width = canvasW;
+        qrCanvas.height = canvasH;
+        ctx.clearRect(0, 0, canvasW, canvasH);
+
+        // 1. Draw Frame Background & Decorations
+        if (frame === 'none') {
+          ctx.fillStyle = state.bgColor;
+          ctx.fillRect(0, 0, canvasW, canvasH);
+        } else if (frame === 'bottom-pill') {
+          ctx.fillStyle = '#ffffff';
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.06);
+          ctx.fill();
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = exportSize * 0.008;
+          ctx.stroke();
+
+          // Pill badge at bottom
+          const pillW = canvasW * 0.68;
+          const pillH = exportSize * 0.11;
+          const pillX = (canvasW - pillW) / 2;
+          const pillY = canvasH - pillH - exportSize * 0.045;
+          ctx.fillStyle = state.frameColor;
+          roundRectPath(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `700 ${Math.round(exportSize * 0.045)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'QUÉT MÃ NGAY', canvasW / 2, pillY + pillH / 2 + 1);
+        } else if (frame === 'modern-card') {
+          ctx.fillStyle = state.frameColor;
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.06);
+          ctx.fill();
+
+          // White inner card for QR
+          ctx.fillStyle = state.bgColor;
+          roundRectPath(ctx, qrOffsetX - exportSize * 0.02, qrOffsetY - exportSize * 0.02, qrBoxSize + exportSize * 0.04, qrBoxSize + exportSize * 0.04, exportSize * 0.04);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `800 ${Math.round(exportSize * 0.052)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'QUÉT MÃ NGAY', canvasW / 2, canvasH - exportSize * 0.1);
+        } else if (frame === 'top-badge') {
+          ctx.fillStyle = '#ffffff';
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.06);
+          ctx.fill();
+          ctx.strokeStyle = state.frameColor;
+          ctx.lineWidth = exportSize * 0.014;
+          ctx.stroke();
+
+          const pillW = canvasW * 0.72;
+          const pillH = exportSize * 0.11;
+          const pillX = (canvasW - pillW) / 2;
+          const pillY = exportSize * 0.055;
+          ctx.fillStyle = state.frameColor;
+          roundRectPath(ctx, pillX, pillY, pillW, pillH, exportSize * 0.025);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `700 ${Math.round(exportSize * 0.045)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'MỞ LIÊN KẾT', canvasW / 2, pillY + pillH / 2 + 1);
+        } else if (frame === 'gradient-glow') {
+          const g = ctx.createLinearGradient(0, 0, canvasW, canvasH);
+          g.addColorStop(0, state.frameColor);
+          g.addColorStop(1, '#ec4899');
+          ctx.fillStyle = g;
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.065);
+          ctx.fill();
+
+          ctx.fillStyle = state.bgColor;
+          roundRectPath(ctx, qrOffsetX - exportSize * 0.02, qrOffsetY - exportSize * 0.02, qrBoxSize + exportSize * 0.04, qrBoxSize + exportSize * 0.04, exportSize * 0.045);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `800 ${Math.round(exportSize * 0.05)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'QUÉT MÃ NGAY', canvasW / 2, canvasH - exportSize * 0.1);
+        } else if (frame === 'dark-lux') {
+          ctx.fillStyle = '#0f172a';
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.06);
+          ctx.fill();
+
+          ctx.fillStyle = state.bgColor;
+          roundRectPath(ctx, qrOffsetX - exportSize * 0.02, qrOffsetY - exportSize * 0.02, qrBoxSize + exportSize * 0.04, qrBoxSize + exportSize * 0.04, exportSize * 0.04);
+          ctx.fill();
+
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = `700 ${Math.round(exportSize * 0.048)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'QUÉT MÃ NGAY', canvasW / 2, canvasH - exportSize * 0.1);
+        } else if (frame === 'ticket') {
+          ctx.fillStyle = '#ffffff';
+          roundRectPath(ctx, 0, 0, canvasW, canvasH, exportSize * 0.04);
+          ctx.fill();
+
+          ctx.save();
+          ctx.setLineDash([exportSize * 0.022, exportSize * 0.015]);
+          ctx.strokeStyle = state.frameColor;
+          ctx.lineWidth = exportSize * 0.01;
+          roundRectPath(ctx, exportSize * 0.025, exportSize * 0.025, canvasW - exportSize * 0.05, canvasH - exportSize * 0.05, exportSize * 0.03);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = state.frameColor;
+          ctx.font = `800 ${Math.round(exportSize * 0.048)}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.frameText || 'QUÉT MÃ NGAY', canvasW / 2, canvasH - exportSize * 0.1);
+        }
+
+        // 2. QR Quiet Zone & Cell Size
+        const quietModules = 2;
+        const totalModules = count + quietModules * 2;
+        const cellSize = qrBoxSize / totalModules;
+        const startX = qrOffsetX + quietModules * cellSize;
+        const startY = qrOffsetY + quietModules * cellSize;
+
+        // Photo Art Mode Background
+        if (state.renderMode === 'photo') {
+          ctx.save();
+          roundRectPath(ctx, qrOffsetX, qrOffsetY, qrBoxSize, qrBoxSize, exportSize * 0.03);
+          ctx.clip();
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(qrOffsetX, qrOffsetY, qrBoxSize, qrBoxSize);
+          ctx.globalAlpha = state.artOpacity / 100;
+          if (state.artPhotoImg) {
+            const img = state.artPhotoImg;
+            const scale = Math.max(qrBoxSize / img.width, qrBoxSize / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            ctx.drawImage(img, qrOffsetX + (qrBoxSize - w) / 2, qrOffsetY + (qrBoxSize - h) / 2, w, h);
+          } else {
+            drawDefaultArtBg(ctx, qrOffsetX, qrOffsetY, qrBoxSize);
+          }
+          ctx.restore();
+        }
+
+        // Prepare Foreground Fill (Solid or Gradient)
+        let fgFill = state.fgColor;
+        if (state.useGradient && state.renderMode !== 'photo') {
+          const grad = ctx.createLinearGradient(startX, startY, startX + count * cellSize, startY + count * cellSize);
+          grad.addColorStop(0, state.fgColor);
+          grad.addColorStop(1, state.fgColor2);
+          fgFill = grad;
+        }
+
+        // Logo Exclusion Box (if logo is present)
+        let logoBox = null;
+        if (state.logoImg) {
+          const logoPx = qrBoxSize * (state.logoSize / 100);
+          const lx = qrOffsetX + (qrBoxSize - logoPx) / 2;
+          const ly = qrOffsetY + (qrBoxSize - logoPx) / 2;
+          logoBox = { x: lx, y: ly, size: logoPx };
+        }
+
+        // 3. Draw QR Data Modules
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (isFinderModule(r, c, count)) continue;
+
+            const mx = startX + c * cellSize;
+            const my = startY + r * cellSize;
+
+            // Skip modules covered by logo pad if logoBgPad is enabled
+            if (logoBox && state.logoBgPad) {
+              const pad = cellSize * 0.5;
+              if (
+                mx + cellSize > logoBox.x - pad &&
+                mx < logoBox.x + logoBox.size + pad &&
+                my + cellSize > logoBox.y - pad &&
+                my < logoBox.y + logoBox.size + pad
+              ) {
+                continue;
+              }
+            }
+
+            const dark = qr.isDark(r, c);
+
+            if (state.renderMode === 'photo') {
+              // Halftone micro-dot rendering for photo blend
+              const dotR = (cellSize * (state.artDotScale / 100)) / 2;
+              const cx = mx + cellSize / 2;
+              const cy = my + cellSize / 2;
+              ctx.beginPath();
+              ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+              ctx.fillStyle = dark ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.85)';
+              ctx.fill();
+            } else {
+              if (!dark) continue;
+              ctx.fillStyle = fgFill;
+              if (state.dotStyle === 'square') {
+                ctx.fillRect(mx, my, cellSize + 0.3, cellSize + 0.3);
+              } else if (state.dotStyle === 'rounded') {
+                roundRectPath(ctx, mx + cellSize * 0.05, my + cellSize * 0.05, cellSize * 0.9, cellSize * 0.9, cellSize * 0.28);
+                ctx.fill();
+              } else if (state.dotStyle === 'dots') {
+                ctx.beginPath();
+                ctx.arc(mx + cellSize / 2, my + cellSize / 2, cellSize * 0.42, 0, Math.PI * 2);
+                ctx.fill();
+              } else if (state.dotStyle === 'diamond') {
+                const cx = mx + cellSize / 2;
+                const cy = my + cellSize / 2;
+                const rad = cellSize * 0.48;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - rad);
+                ctx.lineTo(cx + rad, cy);
+                ctx.lineTo(cx, cy + rad);
+                ctx.lineTo(cx - rad, cy);
+                ctx.closePath();
+                ctx.fill();
+              }
+            }
+          }
+        }
+
+        // 4. Draw 3 Finder Patterns (Eyes)
+        const eyeFg = state.renderMode === 'photo' ? '#0f172a' : fgFill;
+        const eyeBg = state.renderMode === 'photo' ? 'rgba(255,255,255,0.9)' : state.bgColor;
+        drawFinderEye(ctx, startX, startY, cellSize, eyeFg, eyeBg, state.eyeStyle);
+        drawFinderEye(ctx, startX + (count - 7) * cellSize, startY, cellSize, eyeFg, eyeBg, state.eyeStyle);
+        drawFinderEye(ctx, startX, startY + (count - 7) * cellSize, cellSize, eyeFg, eyeBg, state.eyeStyle);
+
+        // 5. Draw Center Logo
+        if (state.logoImg && logoBox) {
+          const { x: lx, y: ly, size: lSize } = logoBox;
+          const pad = lSize * 0.1;
+          ctx.save();
+          if (state.logoBgPad) {
+            ctx.fillStyle = state.renderMode === 'photo' ? '#ffffff' : state.bgColor;
+            if (state.logoShape === 'circle') {
+              ctx.beginPath();
+              ctx.arc(lx + lSize / 2, ly + lSize / 2, lSize / 2 + pad, 0, Math.PI * 2);
+              ctx.fill();
+            } else if (state.logoShape === 'rounded') {
+              roundRectPath(ctx, lx - pad, ly - pad, lSize + pad * 2, lSize + pad * 2, lSize * 0.22);
+              ctx.fill();
+            } else {
+              ctx.fillRect(lx - pad, ly - pad, lSize + pad * 2, lSize + pad * 2);
+            }
+          }
+
+          if (state.logoShape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(lx + lSize / 2, ly + lSize / 2, lSize / 2, 0, Math.PI * 2);
+            ctx.clip();
+          } else if (state.logoShape === 'rounded') {
+            roundRectPath(ctx, lx, ly, lSize, lSize, lSize * 0.18);
+            ctx.clip();
+          }
+          ctx.drawImage(state.logoImg, lx, ly, lSize, lSize);
+          ctx.restore();
+        }
+      }
+
+      // Main Refresh Coordinator
+      function updatePreview() {
+        checkContrast();
+        render2D(900);
+      }
+
+      // Generate SVG String for Vector Download
+      function generateSvgString() {
+        const qr = createQrMatrix();
+        const count = qr.getModuleCount();
+        const size = 600;
+        const quiet = 2;
+        const cell = size / (count + quiet * 2);
+        const offset = quiet * cell;
+        let paths = [];
+
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (!qr.isDark(r, c)) continue;
+            const x = (offset + c * cell).toFixed(2);
+            const y = (offset + r * cell).toFixed(2);
+            const s = cell.toFixed(2);
+            if (state.dotStyle === 'dots') {
+              const cx = (offset + (c + 0.5) * cell).toFixed(2);
+              const cy = (offset + (r + 0.5) * cell).toFixed(2);
+              const rad = (cell * 0.42).toFixed(2);
+              paths.push(`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="${state.fgColor}"/>`);
+            } else {
+              const rx = state.dotStyle === 'rounded' ? (cell * 0.28).toFixed(2) : '0';
+              paths.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="${rx}" fill="${state.fgColor}"/>`);
+            }
+          }
+        }
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${state.bgColor}"/>${paths.join('')}</svg>`;
+      }
+
+      // Preset Icon to Canvas Image helper
+      function createPresetLogoImage(type) {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 256;
+        const cx = c.getContext('2d');
+        const map = {
+          star: { bg: '#fef3c7', fg: '#d97706', char: '★' },
+          heart: { bg: '#ffe4e6', fg: '#e11d48', char: '♥' },
+          bolt: { bg: '#e0e7ff', fg: '#4f46e5', char: '⚡' },
+          globe: { bg: '#d1fae5', fg: '#059669', char: '🌐' }
+        };
+        const cfg = map[type] || map.star;
+        cx.fillStyle = cfg.bg;
+        cx.beginPath();
+        cx.arc(128, 128, 120, 0, Math.PI * 2);
+        cx.fill();
+        cx.fillStyle = cfg.fg;
+        cx.font = 'bold 130px Inter, sans-serif';
+        cx.textAlign = 'center';
+        cx.textBaseline = 'middle';
+        cx.fillText(cfg.char, 128, 136);
+        const img = new Image();
+        img.onload = () => {
+          state.logoImg = img;
+          document.getElementById('btnRemoveLogo').classList.remove('hidden');
+          document.getElementById('logoOptionsRow').classList.remove('hidden');
+          document.getElementById('logoOptionsRow').classList.add('grid');
+          updatePreview();
+        };
+        img.src = c.toDataURL();
+      }
+
+      // ================= EVENT LISTENERS =================
+      // Content Type Tabs
+      document.querySelectorAll('.content-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.content-tab').forEach(b => {
+            b.className = 'content-tab rounded-lg px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:text-slate-900';
+          });
+          btn.className = 'content-tab rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition';
+          state.contentType = btn.dataset.type;
+
+          document.querySelectorAll('.content-panel').forEach(p => p.classList.add('hidden'));
+          const activePanel = document.getElementById(`panel-${state.contentType}`);
+          activePanel.classList.remove('hidden');
+          if (state.contentType !== 'url' && state.contentType !== 'text') {
+            activePanel.classList.add('grid');
+          }
+          updatePreview();
+        });
+      });
+
+      // Live Input Listeners
+      ['inputUrl', 'wifiSsid', 'wifiPass', 'wifiAuth'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+      });
+
+      // Paste URL button
+      document.getElementById('btnPasteUrl').addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            document.getElementById('inputUrl').value = text;
+            updatePreview();
+            showToast('Đã dán đường dẫn từ bộ nhớ tạm!');
+          }
+        } catch {
+          showToast('Vui lòng nhấn Ctrl+V (hoặc chạm giữ -> Dán) vào ô nhập link.');
+        }
+      });
+
+      // Render Mode Buttons
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-btn').forEach(b => {
+            b.classList.remove('border-indigo-600', 'bg-indigo-50/70');
+            b.classList.add('border-slate-200', 'bg-white');
+          });
+          btn.classList.add('border-indigo-600', 'bg-indigo-50/70');
+          btn.classList.remove('border-slate-200', 'bg-white');
+
+          state.renderMode = btn.dataset.mode;
+          document.getElementById('photoArtControls').classList.toggle('hidden', state.renderMode !== 'photo');
+          document.getElementById('frameSection').classList.toggle('opacity-50', state.renderMode !== 'standard');
+          updatePreview();
+        });
+      });
+
+      // Color Swatches
+      document.querySelectorAll('#colorSwatches button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.fgColor = btn.dataset.fg;
+          state.bgColor = btn.dataset.bg;
+          state.useGradient = btn.dataset.grad === 'true';
+          if (btn.dataset.fg2) state.fgColor2 = btn.dataset.fg2;
+
+          document.getElementById('fgColor').value = state.fgColor;
+          document.getElementById('fgColorLabel').textContent = state.fgColor.toUpperCase();
+          document.getElementById('bgColor').value = state.bgColor;
+          document.getElementById('bgColorLabel').textContent = state.bgColor.toUpperCase();
+          document.getElementById('useGradient').checked = state.useGradient;
+          document.getElementById('fgColor2').disabled = !state.useGradient;
+          document.getElementById('fgColor2').value = state.fgColor2;
+          document.getElementById('fgColor2Label').textContent = state.fgColor2.toUpperCase();
+          updatePreview();
+        });
+      });
+
+      // Custom Color Pickers
+      document.getElementById('fgColor').addEventListener('input', (e) => {
+        state.fgColor = e.target.value;
+        document.getElementById('fgColorLabel').textContent = state.fgColor.toUpperCase();
+        updatePreview();
+      });
+      document.getElementById('bgColor').addEventListener('input', (e) => {
+        state.bgColor = e.target.value;
+        document.getElementById('bgColorLabel').textContent = state.bgColor.toUpperCase();
+        updatePreview();
+      });
+      document.getElementById('useGradient').addEventListener('change', (e) => {
+        state.useGradient = e.target.checked;
+        document.getElementById('fgColor2').disabled = !state.useGradient;
+        updatePreview();
+      });
+      document.getElementById('fgColor2').addEventListener('input', (e) => {
+        state.fgColor2 = e.target.value;
+        document.getElementById('fgColor2Label').textContent = state.fgColor2.toUpperCase();
+        updatePreview();
+      });
+
+      // Styles & ECC
+      ['dotStyle', 'eyeStyle', 'eccLevel'].forEach(id => {
+        document.getElementById(id).addEventListener('change', (e) => {
+          state[id] = e.target.value;
+          updatePreview();
+        });
+      });
+
+      // Frame Selection
+      document.querySelectorAll('.frame-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.frame-btn').forEach(b => {
+            b.classList.remove('border-indigo-600', 'bg-indigo-50/70');
+            b.classList.add('border-slate-200', 'bg-white');
+          });
+          btn.classList.add('border-indigo-600', 'bg-indigo-50/70');
+          btn.classList.remove('border-slate-200', 'bg-white');
+          state.frame = btn.dataset.frame;
+          const customRow = document.getElementById('frameCustomRow');
+          if (state.frame === 'none') {
+            customRow.classList.add('hidden');
+            customRow.classList.remove('grid');
+          } else {
+            customRow.classList.remove('hidden');
+            customRow.classList.add('grid');
+          }
+          updatePreview();
+        });
+      });
+
+      document.getElementById('frameText').addEventListener('input', (e) => {
+        state.frameText = e.target.value;
+        updatePreview();
+      });
+      document.getElementById('frameColor').addEventListener('input', (e) => {
+        state.frameColor = e.target.value;
+        document.getElementById('frameColorLabel').textContent = state.frameColor.toUpperCase();
+        updatePreview();
+      });
+
+      // Logo Upload & Options
+      document.getElementById('logoInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            state.logoImg = img;
+            state.eccLevel = 'H';
+            document.getElementById('eccLevel').value = 'H';
+            document.getElementById('btnRemoveLogo').classList.remove('hidden');
+            document.getElementById('logoOptionsRow').classList.remove('hidden');
+            document.getElementById('logoOptionsRow').classList.add('grid');
+            updatePreview();
+            showToast('Đã gắn logo vào giữa mã QR!');
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.querySelectorAll('.preset-logo-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          createPresetLogoImage(btn.dataset.presetLogo);
+          showToast('Đã gắn biểu tượng thương hiệu!');
+        });
+      });
+
+      document.getElementById('btnRemoveLogo').addEventListener('click', () => {
+        state.logoImg = null;
+        document.getElementById('logoInput').value = '';
+        document.getElementById('btnRemoveLogo').classList.add('hidden');
+        document.getElementById('logoOptionsRow').classList.add('hidden');
+        document.getElementById('logoOptionsRow').classList.remove('grid');
+        updatePreview();
+      });
+
+      document.getElementById('logoSize').addEventListener('input', (e) => {
+        state.logoSize = parseInt(e.target.value, 10);
+        document.getElementById('logoSizeVal').textContent = `${state.logoSize}%`;
+        updatePreview();
+      });
+      document.getElementById('logoShape').addEventListener('change', (e) => {
+        state.logoShape = e.target.value;
+        updatePreview();
+      });
+      document.getElementById('logoBgPad').addEventListener('change', (e) => {
+        state.logoBgPad = e.target.checked;
+        updatePreview();
+      });
+
+      // Photo Art Upload & Sliders
+      document.getElementById('artPhotoInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            state.artPhotoImg = img;
+            document.getElementById('artPhotoName').textContent = file.name;
+            document.getElementById('btnClearArtPhoto').classList.remove('hidden');
+            updatePreview();
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      document.getElementById('btnClearArtPhoto').addEventListener('click', () => {
+        state.artPhotoImg = null;
+        document.getElementById('artPhotoInput').value = '';
+        document.getElementById('artPhotoName').textContent = 'Đang dùng ảnh mẫu Gradient Sunset';
+        document.getElementById('btnClearArtPhoto').classList.add('hidden');
+        updatePreview();
+      });
+      document.getElementById('artOpacity').addEventListener('input', (e) => {
+        state.artOpacity = parseInt(e.target.value, 10);
+        document.getElementById('artOpacityVal').textContent = `${state.artOpacity}%`;
+        updatePreview();
+      });
+      document.getElementById('artDotScale').addEventListener('input', (e) => {
+        state.artDotScale = parseInt(e.target.value, 10);
+        document.getElementById('artDotScaleVal').textContent = `${state.artDotScale}%`;
+        updatePreview();
+      });
+
+      // Downloads & Copy
+      document.getElementById('btnDownloadPng').addEventListener('click', () => {
+        render2D(1200);
+        const dataUrl = qrCanvas.toDataURL('image/png');
+        render2D(900);
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `qr-studio-${Date.now()}.png`;
+        a.click();
+        showToast('Đã tải xuống ảnh PNG chất lượng cao!');
+      });
+
+      document.getElementById('btnDownloadSvg').addEventListener('click', () => {
+        const svg = generateSvgString();
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `qr-studio-${Date.now()}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Đã tải xuống file Vector SVG!');
+      });
+
+      document.getElementById('btnCopyPng').addEventListener('click', async () => {
+        try {
+          const targetCanvas = qrCanvas;
+          const blob = await new Promise(resolve => targetCanvas.toBlob(resolve, 'image/png'));
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          showToast('Đã sao chép ảnh mã QR vào bộ nhớ tạm!');
+        } catch {
+          showToast('Trình duyệt không hỗ trợ sao chép ảnh trực tiếp — hãy dùng nút Tải ảnh PNG.');
+        }
+      });
+
+      // Reset All
+      document.getElementById('btnResetAll').addEventListener('click', () => {
+        document.getElementById('inputUrl').value = 'https://gemini.google.com';
+        state.fgColor = '#0f172a';
+        state.bgColor = '#ffffff';
+        state.useGradient = false;
+        state.dotStyle = 'rounded';
+        state.eyeStyle = 'rounded';
+        state.frame = 'none';
+        state.logoImg = null;
+        document.getElementById('fgColor').value = '#0f172a';
+        document.getElementById('bgColor').value = '#ffffff';
+        document.getElementById('useGradient').checked = false;
+        document.getElementById('fgColor2').disabled = true;
+        document.getElementById('btnRemoveLogo').classList.add('hidden');
+        document.getElementById('logoOptionsRow').classList.add('hidden');
+        document.querySelector('.frame-btn[data-frame="none"]').click();
+        document.querySelector('.mode-btn[data-mode="standard"]').click();
+        showToast('Đã đặt lại về mặc định!');
+      });
+
+      // Initialize Lucide icons & initial QR render
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+      updatePreview();
+    })();
+  </script>
+</body>
+</html>
